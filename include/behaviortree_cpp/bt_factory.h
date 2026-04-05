@@ -122,13 +122,6 @@ public:
 
   [[nodiscard]] TreeNode* rootNode() const;
 
-  /// Function signature for a custom sleep override.
-  /// The function receives the desired sleep duration and a reference to the
-  /// WakeUpSignal so it can check for early wake-up.
-  /// Return true if woken up before the timeout, false if the full duration elapsed.
-  using SleepOverrideFunc =
-      std::function<bool(std::chrono::system_clock::duration, WakeUpSignal&)>;
-
   /**
     * @brief Sleep for a certain amount of time. This sleep could be interrupted by the methods
     * TreeNode::emitWakeUpSignal() or Tree::emitWakeUpSignal()
@@ -145,12 +138,12 @@ public:
   void emitWakeUpSignal();
 
   /**
-   * @brief Set a custom sleep override function. When set, Tree::sleep()
-   * will delegate to this function instead of using the default
-   * WakeUpSignal::waitFor(). This allows integrating with external clock
-   * sources (e.g. ROS sim time) while preserving wake-up signal support.
+   * @brief Returns the shared WakeUpSignal used by this tree.
+   * This can be used to check for preemption externally, e.g. when
+   * implementing custom sleep logic with a different clock source.
+   * Returns nullptr if the tree has not been initialized yet.
    */
-  void setSleepOverride(SleepOverrideFunc func);
+  [[nodiscard]] std::shared_ptr<WakeUpSignal> wakeUpSignal() const;
 
   ~Tree();
 
@@ -211,7 +204,6 @@ private:
   friend class BehaviorTreeFactory;
 
   std::shared_ptr<WakeUpSignal> wake_up_;
-  SleepOverrideFunc sleep_override_;
 
   enum TickOption
   {

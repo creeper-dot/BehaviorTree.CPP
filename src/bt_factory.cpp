@@ -655,10 +655,6 @@ TreeNode* Tree::rootNode() const
 
 bool Tree::sleep(std::chrono::system_clock::duration timeout)
 {
-  if(sleep_override_)
-  {
-    return sleep_override_(timeout, *wake_up_);
-  }
   return wake_up_->waitFor(
       std::chrono::duration_cast<std::chrono::milliseconds>(timeout));
 }
@@ -668,9 +664,9 @@ void Tree::emitWakeUpSignal()
   wake_up_->emitSignal();
 }
 
-void Tree::setSleepOverride(SleepOverrideFunc func)
+std::shared_ptr<WakeUpSignal> Tree::wakeUpSignal() const
 {
-  sleep_override_ = std::move(func);
+  return wake_up_;
 }
 
 Tree::~Tree()
