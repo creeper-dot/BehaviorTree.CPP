@@ -67,12 +67,12 @@ NodeStatus ParallelNode::tick()
   setStatus(NodeStatus::RUNNING);
 
   size_t skipped_count = 0;
+  size_t current_success_count = 0;
+  size_t current_failure_count = 0;
 
   // Routing the tree according to the sequence node's logic:
   for(size_t i = 0; i < children_count; i++)
   {
-    if(completed_list_.count(i) == 0)
-    {
       TreeNode* child_node = children_nodes_[i];
       NodeStatus const child_status = child_node->executeTick();
 
@@ -85,13 +85,13 @@ NodeStatus ParallelNode::tick()
 
         case NodeStatus::SUCCESS: {
           completed_list_.insert(i);
-          success_count_++;
+          current_success_count++;
         }
         break;
 
         case NodeStatus::FAILURE: {
           completed_list_.insert(i);
-          failure_count_++;
+          current_failure_count++;
         }
         break;
 
@@ -103,26 +103,25 @@ NodeStatus ParallelNode::tick()
         case NodeStatus::IDLE: {
           throw LogicError("[", name(), "]: A children should not return IDLE");
         }
-      }
     }
 
     const size_t required_success_count = successThreshold();
 
-    if(success_count_ >= required_success_count ||
+    if(current_success_count >= required_success_count ||
        (success_threshold_ < 0 &&
-        (success_count_ + skipped_count) >= required_success_count))
+        (current_success_count + skipped_count) >= required_success_count))
     {
-      clear();
+      //clear();
       resetChildren();
       return NodeStatus::SUCCESS;
     }
 
     // It fails if it is not possible to succeed anymore or if
     // number of failures are equal to failure_threshold_
-    if(((children_count - failure_count_) < required_success_count) ||
-       (failure_count_ == failureThreshold()))
+    if(((children_count - current_failure_count) < required_success_count) ||
+       (current_failure_count == failureThreshold()))
     {
-      clear();
+      //clear();
       resetChildren();
       return NodeStatus::FAILURE;
     }
@@ -133,14 +132,14 @@ NodeStatus ParallelNode::tick()
 
 void ParallelNode::clear()
 {
-  completed_list_.clear();
-  success_count_ = 0;
-  failure_count_ = 0;
+  //completed_list_.clear();
+  //success_count_ = 0;
+  //failure_count_ = 0;
 }
 
 void ParallelNode::halt()
 {
-  clear();
+  //clear();
   ControlNode::halt();
 }
 
